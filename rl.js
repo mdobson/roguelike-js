@@ -8,6 +8,8 @@ var ACTORS = 10;
 
 var log = [];
 var logState = [];
+var items = ['sword', 'shield', 'helmet', 'staff'];
+var MAXCHESTS = randomInt(items.length);
 
 var game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
   create: create  
@@ -104,13 +106,21 @@ function initMap() {
   for (var y = 0; y < ROWS; y++) {
     var newRow = [];
     for (var x = 0; x < COLS; x++) {
-      if(Math.random() > 0.8) {
+      var roll = Math.random();
+      if(roll > 0.8) {
         newRow.push('#');
       } else {
         newRow.push('.');
       }
+
     }
     map.push(newRow);
+  }
+
+  for(var t = 0; t < MAXCHESTS; t++) {
+    var x = randomInt(COLS);
+    var y = randomInt(ROWS);
+    map[y][x] = 'T';  
   }
 }
 
@@ -119,7 +129,11 @@ var asciidisplay;
 function drawMap() {
   for (var y = 0; y < ROWS; y++) {
     for (var x = 0; x < COLS; x++) {
+
       asciidisplay[y][x].text = map[y][x];
+      if(map[y][x] == 'T') {
+        asciidisplay[y][x].addColor('#ff0', 0);
+      }
     }  
   }
 }
@@ -162,7 +176,7 @@ function drawActors() {
 }
 
 function canGo(actor, dir) {
-  return actor.x + dir.x >= 0 && actor.x + dir.x <= COLS - 1 && actor.y + dir.y >= 0 && actor.y + dir.y <= ROWS -1 && map[actor.y + dir.y][actor.x + dir.x] == '.';  
+  return actor.x + dir.x >= 0 && actor.x + dir.x <= COLS - 1 && actor.y + dir.y >= 0 && actor.y + dir.y <= ROWS -1 && (map[actor.y + dir.y][actor.x + dir.x] == '.' || map[actor.y + dir.y][actor.x + dir.x] == 'T');  
 }
 
 function moveTo(actor, dir) {
@@ -188,6 +202,7 @@ function moveTo(actor, dir) {
     if(actor == player || victim == player) {
       victim.hp--;
     } 
+
     if(victim.hp == 0) {
       actorMap[newKey] = null;
       actorList[actorList.indexOf(victim)] = null;
