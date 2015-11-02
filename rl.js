@@ -12,6 +12,7 @@ var items = ['sword', 'shield', 'helmet', 'staff'];
 var MAXCHESTS = randomInt(items.length);
 var chestState = {};
 var inventory = [];
+var inventoryState = [];
 
 var game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
   create: create  
@@ -55,6 +56,19 @@ function drawLog() {
     }
     y++;
   });
+}
+
+function drawInventory() {
+  var x = COLS;
+  var y = 1;
+  inventory.forEach(function(item) {
+    if(y > inventoryState.length) {
+      inventoryState.push(updateTip(item, x, 10 + y));  
+    } else {
+      inventoryState[y - 1].text = item;
+    } 
+    y++;
+  });  
 }
 
 function addToLog(msg) {
@@ -201,20 +215,30 @@ function moveTo(actor, dir) {
     addToLog('Found: ' + item);
     map[actor.y + dir.y][actor.x + dir.x] = '.';
     chestState[newKey] = null;
+    drawInventory();
   }
   if(actorMap[newKey] != null) {
     var victim = actorMap[newKey];
     if(actor == player) {
       addToLog('Attacking!');  
+      if(inventory.indexOf('sword') > -1) {
+        victim.hp = victim.hp - 2;  
+      } else {
+        victim.hp--;  
+      }
     }
 
     if(victim == player) {
       addToLog('Attacked!');  
+      var shieldIdx = inventory.indexOf('shield');
+      if(shieldIdx > -1) {
+        inventory.splice(shieldIdx, 1);
+        drawInventory();
+      } else {
+        victim.hp--;
+      }
     }
 
-    if(actor == player || victim == player) {
-      victim.hp--;
-    } 
 
     if(victim.hp == 0) {
       actorMap[newKey] = null;
