@@ -1,11 +1,15 @@
 var FONT = 32;
 
-var ROWS = 10;
-var COLS = 15;
+var ROWS = 20;
+var COLS = 45;
+var TIPWIDTH = 300; 
 
 var ACTORS = 10;
 
-var game = new Phaser.Game(COLS * FONT * 0.6, ROWS * FONT, Phaser.AUTO, null, {
+var log = [];
+var logState = [];
+
+var game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
   create: create  
 });
 
@@ -13,6 +17,7 @@ function create() {
   game.input.keyboard.addCallbacks(null, null, onKeyUp);  
   initMap();
   initActors();
+
 
   asciidisplay = [];
   for(var y = 0; y < ROWS; y++) {
@@ -24,6 +29,35 @@ function create() {
   }
   drawMap();
   drawActors();
+  updateTip('Adventure Time', COLS, 0);
+}
+
+
+
+function updateTip(txt, x, y ) {
+  var style = { font: FONT + 'px monospace', fill: '#fff' };
+  return game.add.text((FONT * 0.6 * x) + 5, FONT * y, txt, style);
+}
+
+function drawLog() {
+  var x = COLS;
+  var y = 1;
+  log.forEach(function(msg) {
+    if(y > logState.length) {
+      logState.push(updateTip(msg, x, y)); 
+    } else {
+      logState[y - 1].text = msg;  
+    }
+    y++;
+  });
+}
+
+function addToLog(msg) {
+  if(log.length > ROWS) {
+    log.pop();  
+  }
+  log.unshift(msg);  
+  drawLog();
 }
 
 function initCell(chr, x, y) {
@@ -136,10 +170,21 @@ function moveTo(actor, dir) {
     return false;
   }
       
-  
+  if(actor == player) {
+    addToLog('Move To (' + (actor.x + dir.x) + ',' + (actor.y + dir.y) + ')');       
+  } 
+
   var newKey = (actor.y + dir.y) + '_' + (actor.x + dir.x);
   if(actorMap[newKey] != null) {
     var victim = actorMap[newKey];
+    if(actor == player) {
+      addToLog('Attacking!');  
+    }
+
+    if(victim == player) {
+      addToLog('Attacked!');  
+    }
+
     if(actor == player || victim == player) {
       victim.hp--;
     } 
