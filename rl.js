@@ -11,6 +11,7 @@ var logState = [];
 var items = ['sword', 'shield', 'helmet', 'staff'];
 var MAXCHESTS = randomInt(items.length);
 var chestState = {};
+var inventory = [];
 
 var game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
   create: create  
@@ -33,6 +34,7 @@ function create() {
   drawMap();
   drawActors();
   updateTip('Adventure Time', COLS, 0);
+  updateTip('Inventory', COLS, 10);
 }
 
 
@@ -56,7 +58,7 @@ function drawLog() {
 }
 
 function addToLog(msg) {
-  if(log.length > ROWS) {
+  if(log.length > 8) {
     log.pop();  
   }
   log.unshift(msg);  
@@ -193,9 +195,9 @@ function moveTo(actor, dir) {
   } 
 
   var newKey = (actor.y + dir.y) + '_' + (actor.x + dir.x);
-  console.log(newKey, chestState[newKey]);
   if(chestState[newKey] && actor == player) {
     var item = chestState[newKey].item;
+    inventory.push(item);
     addToLog('Found: ' + item);
     map[actor.y + dir.y][actor.x + dir.x] = '.';
     chestState[newKey] = null;
