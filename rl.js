@@ -10,6 +10,7 @@ var log = [];
 var logState = [];
 var items = ['sword', 'shield', 'helmet', 'staff'];
 var MAXCHESTS = randomInt(items.length);
+var chestState = {};
 
 var game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
   create: create  
@@ -121,6 +122,7 @@ function initMap() {
     var x = randomInt(COLS);
     var y = randomInt(ROWS);
     map[y][x] = 'T';  
+    chestState[y+'_'+x] = {item: items[t]};
   }
 }
 
@@ -133,6 +135,8 @@ function drawMap() {
       asciidisplay[y][x].text = map[y][x];
       if(map[y][x] == 'T') {
         asciidisplay[y][x].addColor('#ff0', 0);
+      } else {
+        asciidisplay[y][x].addColor('#fff', 0);
       }
     }  
   }
@@ -189,6 +193,13 @@ function moveTo(actor, dir) {
   } 
 
   var newKey = (actor.y + dir.y) + '_' + (actor.x + dir.x);
+  console.log(newKey, chestState[newKey]);
+  if(chestState[newKey] && actor == player) {
+    var item = chestState[newKey].item;
+    addToLog('Found: ' + item);
+    map[actor.y + dir.y][actor.x + dir.x] = '.';
+    chestState[newKey] = null;
+  }
   if(actorMap[newKey] != null) {
     var victim = actorMap[newKey];
     if(actor == player) {
