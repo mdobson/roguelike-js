@@ -14,6 +14,15 @@ var UI = function() {
   this.tipState = [];
   this.inventoryState = [];
   this.gameState = new Game();
+  this.logs = [];
+  this.logState = [];
+  this.gameState.gameLogUpdate = function(msg) {
+    if(self.logs.length > 8) {
+      self.logs.pop();  
+    }
+    self.logs.unshift(msg);  
+    self.drawLog();   
+  };
   this.game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
     create: function() {
       self.game.input.keyboard.addCallbacks(null, null, self.onKeyUp.bind(self));  
@@ -37,6 +46,20 @@ var UI = function() {
     }  
   });
 
+}
+
+UI.prototype.drawLog = function() {
+  var self = this;
+  var x = COLS;
+  var y = 1;
+  this.logs.forEach(function(msg) {
+    if(y > self.logState.length) {
+      self.logState.push(self.initCell(msg, x, y)); 
+    } else {
+      self.logState[y - 1].text = msg;  
+    }
+    y++;
+  }); 
 }
 
 UI.prototype.initCell = function(chr, x, y) {
@@ -119,19 +142,20 @@ Game.prototype.moveTo = function(actor, dir) {
   }
       
   if(actor == self.player) {
-    //addToLog('Move To (' + (actor.x + dir.x) + ',' + (actor.y + dir.y) + ')');       
+    self.gameLogUpdate('Move To (' + (actor.x + dir.x) + ',' + (actor.y + dir.y) + ')');       
   } 
 
   var newKey = (actor.y + dir.y) + '_' + (actor.x + dir.x);
   if(self.actorMap[newKey] != null) {
     var victim = self.actorMap[newKey];
     if(actor == self.player) {
-      //addToLog('Attacking!');  
+      self.gameLogUpdate('Attacking!');  
     }
 
     if(victim == self.player) {
-      //addToLog('Attacked!');  
+      self.gameLogUpdate('Attacked!');  
     }
+    victim.hp--;
 
 
     if(victim.hp == 0) {
@@ -139,7 +163,7 @@ Game.prototype.moveTo = function(actor, dir) {
       self.actorList[self.actorList.indexOf(victim)] = null;
       if(victim != self.player) {
         self.livingEnemies--;
-        if(livingEnemies == 0) {
+        if(self.livingEnemies == 0) {
           //var victory = game.add.text(game.world.centerX, game.world.centerY, 'Victory!\nCtrl+r to restart', { fill: '#2e2', align: 'center' });
           //victory.anchor.setTo(0.5, 0.5);  
         }  
