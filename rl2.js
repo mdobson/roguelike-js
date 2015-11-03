@@ -16,7 +16,7 @@ var UI = function() {
   this.gameState = new Game();
   this.game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
     create: function() {
-      self.game.input.keyboard.addCallbacks(null, null, onKeyUp);  
+      self.game.input.keyboard.addCallbacks(null, null, self.onKeyUp.bind(self));  
       self.gameState.initMap();
       self.gameState.initActors();
 
@@ -68,6 +68,41 @@ UI.prototype.drawActors = function() {
   }
 };
 
+UI.prototype.onKeyUp = function(event) {
+  var self = this;
+  this.drawMap();
+  var acted = false;
+  switch(event.keyCode) {
+    case Phaser.Keyboard.LEFT:
+      acted = self.gameState.moveTo(self.gameState.player, {x: -1, y: 0});
+      break;
+    case Phaser.Keyboard.RIGHT:
+      acted = self.gameState.moveTo(self.gameState.player, {x: 1, y: 0});
+      break;
+    case Phaser.Keyboard.UP:
+      acted = self.gameState.moveTo(self.gameState.player, {x: 0, y: -1});
+      break;
+    case Phaser.Keyboard.DOWN:
+      acted = self.gameState.moveTo(self.gameState.player, {x: 0, y: 1});
+      break;
+  }
+
+  if(acted) {
+    for(var enemy in self.actorList) {
+      if(enemy == 0) {
+        continue;  
+      }
+      var e = self.gameState.actorList[enemy];
+      if(e != null) {
+        self.gameState.aiAct(e);  
+      }  
+    }  
+  }
+  this.drawActors();
+};
+
+
+
 var Game = function() {
   this.map = [];
   this.player = {};
@@ -76,6 +111,53 @@ var Game = function() {
   this.chests = {};
   this.livingEnemies = 0;
 }
+
+Game.prototype.moveTo = function(actor, dir) {
+  var self = this;
+ if(!this.canGo(actor, dir)) {
+    return false;
+  }
+      
+  if(actor == self.player) {
+    //addToLog('Move To (' + (actor.x + dir.x) + ',' + (actor.y + dir.y) + ')');       
+  } 
+
+  var newKey = (actor.y + dir.y) + '_' + (actor.x + dir.x);
+  if(self.actorMap[newKey] != null) {
+    var victim = self.actorMap[newKey];
+    if(actor == self.player) {
+      //addToLog('Attacking!');  
+    }
+
+    if(victim == self.player) {
+      //addToLog('Attacked!');  
+    }
+
+
+    if(victim.hp == 0) {
+      self.actorMap[newKey] = null;
+      self.actorList[self.actorList.indexOf(victim)] = null;
+      if(victim != self.player) {
+        self.livingEnemies--;
+        if(livingEnemies == 0) {
+          //var victory = game.add.text(game.world.centerX, game.world.centerY, 'Victory!\nCtrl+r to restart', { fill: '#2e2', align: 'center' });
+          //victory.anchor.setTo(0.5, 0.5);  
+        }  
+      } 
+    }
+  } else {
+    self.actorMap[actor.y + '_' + actor.x] = null;
+    actor.y += dir.y;
+    actor.x += dir.x;
+    self.actorMap[actor.y + '_' + actor.x] = actor;  
+  } 
+  return true;
+}
+
+Game.prototype.canGo = function(actor, dir) {
+  return actor.x + dir.x >= 0 && actor.x + dir.x <= COLS - 1 && actor.y + dir.y >= 0 && actor.y + dir.y <= ROWS -1 && (this.map[actor.y + dir.y][actor.x + dir.x] == '.' || this.map[actor.y + dir.y][actor.x + dir.x] == 'T');  
+ 
+};
 
 Game.prototype.initMap = function() {
   var self = this;
@@ -124,10 +206,6 @@ Game.prototype.initActors = function() {
 
 function randomInt(max) {
   return Math.floor(Math.random() * max);  
-}
-
-function onKeyUp() {
-  
 }
 
 var ui = new UI();
