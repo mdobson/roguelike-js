@@ -23,6 +23,11 @@ var UI = function() {
     self.logs.unshift(msg);  
     self.drawLog();   
   };
+  this.gameState.gameGlobalUpdate = function(msg, fill) {
+    var gameMessage = self.game.add.text(self.game.world.centerX, self.game.world.centerY, msg, { fill: fill, align: 'center' });
+    gameMessage.anchor.setTo(0.5, 0.5);  
+   
+  };
   this.game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
     create: function() {
       self.game.input.keyboard.addCallbacks(null, null, self.onKeyUp.bind(self));  
@@ -111,7 +116,7 @@ UI.prototype.onKeyUp = function(event) {
   }
 
   if(acted) {
-    for(var enemy in self.actorList) {
+    for(var enemy in self.gameState.actorList) {
       if(enemy == 0) {
         continue;  
       }
@@ -164,8 +169,7 @@ Game.prototype.moveTo = function(actor, dir) {
       if(victim != self.player) {
         self.livingEnemies--;
         if(self.livingEnemies == 0) {
-          //var victory = game.add.text(game.world.centerX, game.world.centerY, 'Victory!\nCtrl+r to restart', { fill: '#2e2', align: 'center' });
-          //victory.anchor.setTo(0.5, 0.5);  
+          self.globalGameUpdate('Victory!\nCtrl+r to restart', '#2e2');
         }  
       } 
     }
@@ -226,6 +230,35 @@ Game.prototype.initActors = function() {
   self.player = self.actorList[0];
 
   self.livingEnemies = ACTORS - 1;
+};
+
+Game.prototype.aiAct = function(actor) {
+    var directions = [{x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}];
+  var dx = this.player.x - actor.x;
+  var dy = this.player.y - actor.y;
+  
+  if(Math.abs(dx) + Math.abs(dy) > 6) {
+    while(!this.moveTo(actor, directions[randomInt(directions.length)])) {}; 
+  }  
+
+  if(Math.abs(dx) > Math.abs(dy)) {
+    if(dx < 0) {
+      this.moveTo(actor, directions[0]);  
+    } else {
+      this.moveTo(actor, directions[1]);
+    }  
+  } else {
+    if(dy < 0) {
+      this.moveTo(actor, directions[2]);  
+    } else {
+      this.moveTo(actor, directions[3]);
+    }
+  }
+
+  if(this.player.hp < 1) {
+    this.gameGlobalUpdate('Game Over!\nCtrl+r to restart.', '#ffe');
+  }
+ 
 };
 
 function randomInt(max) {
