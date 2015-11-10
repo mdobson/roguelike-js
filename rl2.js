@@ -91,7 +91,7 @@ UI.prototype.drawActors = function() {
   var self = this;
   for(var a in self.gameState.actorList) {
     if(self.gameState.actorList[a] && self.gameState.actorList[a].hp > 0) {
-      self.mapState[self.gameState.actorList[a].y][self.gameState.actorList[a].x].text = a == 0 ? ''+self.gameState.player.hp : 'e';  
+      self.mapState[self.gameState.actorList[a].y][self.gameState.actorList[a].x].text = self.gameState.actorList[a].icon();  
     }  
   }
 };
@@ -160,7 +160,8 @@ Game.prototype.moveTo = function(actor, dir) {
     if(victim == self.player) {
       self.gameLogUpdate('Attacked!');  
     }
-    victim.hp--;
+
+    victim.subtractHp(actior.attack());
 
 
     if(victim.hp == 0) {
@@ -217,7 +218,7 @@ Game.prototype.initActors = function() {
   this.actorList = [];
   this.actorMap = {};
   for(var e = 0; e < ACTORS; e++) {
-    var actor = { x: 0, y: 0, hp: e == 0 ? 3 : 1  };
+    var actor = new Actor(0, 0, e == 0 ? 3 : 1);
     do {
       actor.y = randomInt(ROWS);
       actor.x = randomInt(COLS);   
@@ -228,12 +229,13 @@ Game.prototype.initActors = function() {
   }
 
   self.player = self.actorList[0];
+  self.player.player = true;
 
   self.livingEnemies = ACTORS - 1;
 };
 
 Game.prototype.aiAct = function(actor) {
-    var directions = [{x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}];
+  var directions = [{x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}];
   var dx = this.player.x - actor.x;
   var dy = this.player.y - actor.y;
   
@@ -260,6 +262,35 @@ Game.prototype.aiAct = function(actor) {
   }
  
 };
+
+var Actor = function(x, y, hp) {
+  this.x = x;
+  this.y = y;
+  this.hp = hp; 
+  this.attack = 1;
+  this.player = false;
+  this.inventory = [];
+}
+
+Actor.prototype.icon = function() {
+  if(this.player) {
+    return ''+this.hp;  
+  } else {
+    return 'e';  
+  }
+}
+
+Actor.prototype.attack = function() {
+  return this.attack;
+};
+
+Actor.prototype.subtractHp = function(lost) {
+  this.hp = this.hp - lost  
+}
+
+var Item = function(name) {
+  this.name = name;  
+}
 
 function randomInt(max) {
   return Math.floor(Math.random() * max);  
