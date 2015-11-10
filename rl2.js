@@ -281,15 +281,33 @@ Actor.prototype.icon = function() {
 }
 
 Actor.prototype.attack = function() {
+  var self = this;
+  this.inventory.forEach(function(item) {
+    self.attack += item.attack; 
+  });
   return this.attack;
 };
 
 Actor.prototype.subtractHp = function(lost) {
+  var self = this;
+  this.inventory.forEach(function(item) {
+    self.hp += item.defend();  
+  });
   this.hp = this.hp - lost  
 }
 
-var Item = function(name) {
+var Item = function(name, atk, def) {
   this.name = name;  
+  this.atk = atk;
+  this.def = def;
+}
+
+Item.prototype.attack = function() {
+  return this.atk;  
+}
+
+Item.prototype.defend = function() {
+  return this.def;  
 }
 
 function randomInt(max) {
