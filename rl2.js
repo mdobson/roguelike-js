@@ -8,6 +8,13 @@ var ACTORS = 10;
 var items = ['sword', 'shield', 'potion', 'staff'];
 var MAXCHESTS = randomInt(items.length);
 
+var Loader = function(loader) {
+  this.loader = loader; 
+}
+
+Loader.prototype.init = function() {
+}
+
 var UI = function() {
   var self = this;
   this.mapState = [];
@@ -28,6 +35,7 @@ var UI = function() {
     gameMessage.anchor.setTo(0.5, 0.5);  
    
   };
+
   this.game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
     create: function() {
       self.game.input.keyboard.addCallbacks(null, null, self.onKeyUp.bind(self));  
@@ -48,8 +56,13 @@ var UI = function() {
       self.initCell('Adventure Time', COLS, 0);
       self.initCell('Inventory', COLS, 10);
   
+    },
+    preload: function() {
+      this.loader = new Loader(this.game);
+      this.loader.init();
     }  
   });
+
 
 }
 
@@ -161,7 +174,7 @@ Game.prototype.moveTo = function(actor, dir) {
       self.gameLogUpdate('Attacked!');  
     }
 
-    victim.subtractHp(actior.attack());
+    victim.subtractHp(actor.attack());
 
 
     if(victim.hp == 0) {
@@ -267,7 +280,7 @@ var Actor = function(x, y, hp) {
   this.x = x;
   this.y = y;
   this.hp = hp; 
-  this.attack = 1;
+  this.atk = 1;
   this.player = false;
   this.inventory = [];
 }
@@ -283,17 +296,21 @@ Actor.prototype.icon = function() {
 Actor.prototype.attack = function() {
   var self = this;
   this.inventory.forEach(function(item) {
-    self.attack += item.attack; 
+    self.atk += item.attack; 
   });
-  return this.attack;
+  return this.atk;
 };
 
 Actor.prototype.subtractHp = function(lost) {
   var self = this;
+  var tmpHp = self.hp;
   this.inventory.forEach(function(item) {
-    self.hp += item.defend();  
+    tmpHp += item.defend();  
   });
-  this.hp = this.hp - lost  
+  tmpHp = tmpHp - lost;
+  if(tmpHp < self.hp) {
+    self.hp = tmpHp;
+  }
 }
 
 var Item = function(name, atk, def) {
