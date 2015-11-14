@@ -1,13 +1,15 @@
-// var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
-var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+
+var COLS = 45;
+var ROWS = 20;
+var TILESIZE = 32;
+var game = new Phaser.Game(COLS * TILESIZE, ROWS * TILESIZE, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
 
     game.load.image('ground_1x1', 'ground_1x1.png');
+    game.load.spritesheet('dude', 'dude.png', 32, 48);
 
 }
-var COLS = 40;
-var ROWS = 30;
 
 var map;
 var layer1;
@@ -54,7 +56,7 @@ function create() {
     //  Create our tile selector at the top of the screen
     //createTileSelector();
 
-    game.input.addMoveCallback(updateMarker, this);
+    //game.input.addMoveCallback(updateMarker, this);
 
     cursors = game.input.keyboard.createCursorKeys();
 
@@ -212,4 +214,9 @@ function drawMap() {
       }
     }  
   } 
+  game.add.sprite(1, 1, 'dude');
+}
+
+function gameCoordinatesToMapCoodinates(x, y) {
+  return {x: TILESIZE * x, y: TILESIZE * y};
 }
