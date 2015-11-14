@@ -13,6 +13,8 @@ var Loader = function(loader) {
 }
 
 Loader.prototype.init = function() {
+  this.loader.load.image('dirt', 'cobblestone.png');
+  this.loader.load.image('brick', 'brick.png');
 }
 
 var UI = function() {
@@ -24,6 +26,7 @@ var UI = function() {
   this.logs = [];
   this.logState = [];
   this.gameState.gameLogUpdate = function(msg) {
+    return;
     if(self.logs.length > 8) {
       self.logs.pop();  
     }
@@ -47,14 +50,13 @@ var UI = function() {
         var newRow = [];
         self.mapState.push(newRow);
         for(var x = 0; x < COLS; x++) {
-          newRow.push(self.initCell('', x, y)); 
         }  
       }
 
       self.drawMap();
-      self.drawActors();
-      self.initCell('Adventure Time', COLS, 0);
-      self.initCell('Inventory', COLS, 10);
+      //self.drawActors();
+      //self.initCell('Adventure Time', COLS, 0);
+      //self.initCell('Inventory', COLS, 10);
   
     },
     preload: function() {
@@ -85,17 +87,28 @@ UI.prototype.initCell = function(chr, x, y) {
   return this.game.add.text(FONT * 0.6 * x, FONT * y, chr, style);  
 };
 
+UI.prototype.initSprite = function(x, y, type) {
+  this.game.add.sprite(FONT * x, FONT * y, type);  
+}
+
 UI.prototype.drawMap = function() {
   var self = this;
   for (var y = 0; y < ROWS; y++) {
     for (var x = 0; x < COLS; x++) {
-
-      self.mapState[y][x].text = self.gameState.map[y][x];
+      var type = self.gameState.map[y][x];
+      if(type == '#') {
+        self.initSprite(x, y, 'brick');  
+      } else if (type == '.') {
+        self.initSprite(x, y, 'dirt');
+      }
+      //self.mapState[y][x].text = self.gameState.map[y][x];
+      /*
       if(self.gameState.map[y][x] == 'T') {
         self.mapState[y][x].addColor('#ff0', 0);
       } else {
         self.mapState[y][x].addColor('#fff', 0);
       }
+      */
     }  
   } 
 };
