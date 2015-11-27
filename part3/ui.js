@@ -5,7 +5,7 @@ var Loader = function(loader) {
 Loader.prototype.init = function() {
 }
 
-var UI = function() {
+var MainUI = function(game) {
   var self = this;
   this.mapState = [];
   this.tipState = [];
@@ -26,37 +26,36 @@ var UI = function() {
    
   };
 
-  this.game = new Phaser.Game((COLS * FONT * 0.6) + TIPWIDTH, ROWS * FONT, Phaser.AUTO, null, {
-    create: function() {
-      self.game.input.keyboard.addCallbacks(null, null, self.onKeyUp.bind(self));  
-      self.gameState.initMap();
-      self.gameState.initActors();
-
-
-      for(var y = 0; y < ROWS; y++) {
-        var newRow = [];
-        self.mapState.push(newRow);
-        for(var x = 0; x < COLS; x++) {
-          newRow.push(self.initCell('', x, y)); 
-        }  
-      }
-
-      self.drawMap();
-      self.drawActors();
-      self.initCell('Adventure Time', COLS, 0);
-      self.initCell('Inventory', COLS, 10);
-  
-    },
-    preload: function() {
-      this.loader = new Loader(this.game);
-      this.loader.init();
-    }  
-  });
-
+  this.game = game;
 
 }
 
-UI.prototype.drawLog = function() {
+MainUI.prototype.create = function() {
+  this.game.input.keyboard.addCallbacks(null, null, this.onKeyUp.bind(this));  
+  this.gameState.initMap();
+  this.gameState.initActors();
+
+
+  for(var y = 0; y < ROWS; y++) {
+    var newRow = [];
+    this.mapState.push(newRow);
+    for(var x = 0; x < COLS; x++) {
+      newRow.push(this.initCell('', x, y)); 
+    }  
+  }
+
+  this.drawMap();
+  this.drawActors();
+  this.initCell('Adventure Time', COLS, 0);
+  this.initCell('Inventory', COLS, 10); 
+}
+
+MainUI.prototype.preload = function() {
+  this.loader = new Loader(this.game);
+  this.loader.init();
+}
+
+MainUI.prototype.drawLog = function() {
   var self = this;
   var x = COLS;
   var y = 1;
@@ -70,12 +69,12 @@ UI.prototype.drawLog = function() {
   }); 
 }
 
-UI.prototype.initCell = function(chr, x, y) {
+MainUI.prototype.initCell = function(chr, x, y) {
   var style = { font: FONT + 'px monospace', fill: '#fff'};
   return this.game.add.text(FONT * 0.6 * x, FONT * y, chr, style);  
 };
 
-UI.prototype.drawMap = function() {
+MainUI.prototype.drawMap = function() {
   var self = this;
   for (var y = 0; y < ROWS; y++) {
     for (var x = 0; x < COLS; x++) {
@@ -90,7 +89,7 @@ UI.prototype.drawMap = function() {
   } 
 };
 
-UI.prototype.drawActors = function() {
+MainUI.prototype.drawActors = function() {
   var self = this;
   for(var a in self.gameState.actorList) {
     if(self.gameState.actorList[a] && self.gameState.actorList[a].hp > 0) {
@@ -99,8 +98,9 @@ UI.prototype.drawActors = function() {
   }
 };
 
-UI.prototype.onKeyUp = function(event) {
+MainUI.prototype.onKeyUp = function(event) {
   var self = this;
+  console.log(this);
   this.drawMap();
   var acted = false;
   switch(event.keyCode) {
