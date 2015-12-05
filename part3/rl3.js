@@ -3,10 +3,13 @@ var FONT = 32;
 var ROWS = 20;
 var COLS = 45;
 var TIPWIDTH = 300; 
+var PLANETS = 8;
+var generatedPlanets = [];
 
 var ACTORS = 10;
 var items = ['sword', 'shield', 'potion', 'staff'];
 var MAXCHESTS = randomInt(items.length);
+var MIN_DISTANCE = 7;
 
 function randomInt(max) {
   return Math.floor(Math.random() * max);  
@@ -20,25 +23,90 @@ var TitleState = function(game) {
 
 TitleState.prototype.create = function() {
   var self = this;
-  var gameMessage = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Techno Hunt", { fill: '#fff', align: 'center' });
+  var gameMessage = this.game.add.text(this.game.world.centerX, this.game.world.centerY, 'Techno Hunt', { fill: '#fff', align: 'center' });
   gameMessage.anchor.setTo(0.5, 0.5); 
   this.game.input.keyboard.addCallbacks(null, null, function(ev) {
-    self.game.state.start('Main'); 
+    self.game.state.start('Coordinate'); 
   });
 }
 
-var MainState = function(game) {
+var CoordinateSelect = function(game) {
+  this.game = game;  
+}
+
+CoordinateSelect.prototype.create = function() {
+  var self = this;
+  this.game.input.keyboard.stop();
+  function setupUI() {
+    var header = self.game.add.text(this.game.world.centerX, 20, 'World Selection Operating System', { fill: '#fff', align: 'center'}); 
+    header.anchor.setTo(0.5, 0.5);
+  } 
+  var coords = [];
+  var uiCells = [];
+  function generatePlanets() {
+    function generateCoords() {
+      var x = randomInt(COLS); 
+      var y = randomInt(ROWS);
+      if(coords.length) {
+        coords.forEach(function(c) {
+          while(distance(c.x, c.y, x, y) < MIN_DISTANCE || (c.x == x && c.y == y)) {
+            x = randomInt(COLS);
+            y = randomInt(ROWS);
+          }
+        });   
+        coords.push({x: x, y: y});  
+      } else {
+        coords.push({x: x, y: y});  
+      }
+    }
+     
+    for(var i = 0; i < PLANETS; i++) {
+      generateCoords(); 
+    } 
+
+    var counter = 1;
+    coords.forEach(function(c) {
+      if(c.y == 0) {
+        c.y += 1;  
+      }
+      generatedPlanets.push(new Planet(c.x, c.y, 'Planet ' + counter));        
+      counter++;
+    });
+  }
+
+  function renderPlanets() {
+    var counter = 0;
+    generatedPlanets.forEach(function(p) {
+      addCell('0', p.x, p.y);    
+      uiCells.push(addCell(p.name, COLS, counter));
+      counter++; 
+    });  
+
+  }
+  function addCell(chr, x, y) {
+    var style = { font: FONT + 'px monospace', fill: '#fff'};
+    return this.game.add.text(FONT * 0.6 * x, FONT * y, chr, style);  
+  }
+
+  setupUI();
+  generatePlanets();
+  renderPlanets();
+}
+
+
+var MapState = function(game) {
   this.ui = new MainUI(game);  
 };
 
-MainState.prototype.create = function() {
+MapState.prototype.create = function() {
   this.ui.create();  
 }
 
-MainState.prototype.preload = function() {
+MapState.prototype.preload = function() {
   this.ui.preload();  
 }
 
 game.state.add('Title', TitleState);
-game.state.add('Main', MainState);
+game.state.add('Map', MapState);
+game.state.add('Coordinate', CoordinateSelect);
 game.state.start('Title');
