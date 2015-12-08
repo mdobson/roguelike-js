@@ -25,9 +25,14 @@ TitleState.prototype.create = function() {
   var self = this;
   var gameMessage = this.game.add.text(this.game.world.centerX, this.game.world.centerY, 'Techno Hunt', { fill: '#fff', align: 'center' });
   gameMessage.anchor.setTo(0.5, 0.5); 
-  this.game.input.keyboard.addCallbacks(null, null, function(ev) {
+
+
+  this.game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
+  var startKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+  startKey.onDown.addOnce(function() {
     self.game.state.start('Coordinate'); 
-  });
+  }, this);
 }
 
 var CoordinateSelect = function(game) {
@@ -35,8 +40,10 @@ var CoordinateSelect = function(game) {
 }
 
 CoordinateSelect.prototype.create = function() {
+  this.game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.W, Phaser.Keyboard.S, Phaser.Keyboard.UP, Phaser.Keyboard.DOWN]);
+
+  
   var self = this;
-  this.game.input.keyboard.stop();
   function setupUI() {
     var header = self.game.add.text(this.game.world.centerX, 20, 'World Selection Operating System', { fill: '#fff', align: 'center'}); 
     header.anchor.setTo(0.5, 0.5);
@@ -77,20 +84,74 @@ CoordinateSelect.prototype.create = function() {
   function renderPlanets() {
     var counter = 0;
     generatedPlanets.forEach(function(p) {
-      addCell('0', p.x, p.y);    
-      uiCells.push(addCell(p.name, COLS, counter));
+      uiCells.push({sprite: addCell('0', p.x, p.y), text: addCell(p.name, COLS, counter), selected: false});
       counter++; 
     });  
-
   }
+
   function addCell(chr, x, y) {
     var style = { font: FONT + 'px monospace', fill: '#fff'};
     return this.game.add.text(FONT * 0.6 * x, FONT * y, chr, style);  
   }
 
+  var idx = 0;
+
+  function setupControls() {
+    var startKey = self.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    startKey.onDown.addOnce(function() {
+      self.game.state.start('Map');     
+    }, this);
+
+    var upKey = self.input.keyboard.addKey(Phaser.Keyboard.UP);
+    var downKey = self.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+
+    upKey.onDown.add(function() {
+      idx--;
+      if(idx < 0) {
+        idx = uiCells.length - 1;  
+        console.log(idx);
+      } 
+      unselect();
+      select(idx);
+    }, null);
+    
+    downKey.onDown.add(function() {
+      idx++;
+      if(idx > uiCells.length - 1) {
+        idx = 0;  
+        console.log(idx);
+      } 
+      unselect();
+      select(idx);
+    }, null);
+    
+    function unselect() {
+      var style = { font: FONT + 'px monospace', fill: '#fff'};
+      var cell = uiCells.filter(function(c) {
+        return c.selected === true;  
+      })[0];  
+
+      cell.selected = false;
+      cell.sprite.setStyle(style)
+      cell.text.setStyle(style); 
+
+    }
+    function select(idx) {
+      var cell = uiCells[idx];
+      var style = { font: FONT + 'px monospace', fill: '#ff0'};
+
+      cell.selected = true;
+      cell.sprite.setStyle(style)
+      cell.text.setStyle(style); 
+    } 
+
+    select(idx);
+  }
+
   setupUI();
   generatePlanets();
   renderPlanets();
+  setupControls();
 }
 
 
